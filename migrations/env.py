@@ -19,8 +19,12 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from app.db.models import *  # Import your models here
+from app.db.models import *  # Import all models to ensure metadata is populated
+from app.db.base import SQLModel, BaseModel
 
+print("Available tables:", [t.name for t in SQLModel.metadata.sorted_tables])
+
+# Import all models before setting up metadata
 target_metadata = SQLModel.metadata
 
 # other values from the config, defined by the needs of env.py,

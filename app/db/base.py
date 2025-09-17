@@ -8,7 +8,7 @@ from sqlmodel import SQLModel, Field
 from sqlalchemy import event
 
 
-from sqlalchemy import Column, DateTime, Boolean
+from sqlalchemy import Column, DateTime
 
 
 class TimestampMixin(SQLModel):
@@ -35,9 +35,12 @@ def set_updated_at(_, __, target):
 
 
 class IDMixin(SQLModel):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: str = Field(default=None, primary_key=True)
 
 
 # Common base class for all models
 class BaseModel(IDMixin, TimestampMixin, SQLModel):
-    pass
+    """Base model class that automatically uses SQLModel's table configuration"""
+
+    class Config:
+        orm_mode = True
