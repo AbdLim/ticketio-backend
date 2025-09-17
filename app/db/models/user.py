@@ -15,7 +15,7 @@ class UserRole(str, Enum):
 class User(BaseModel, table=True):
     __tablename__ = "users"
 
-    name: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None, unique=True, index=True)
     email: Optional[str] = Field(default=None, unique=True, index=True)
     wallet_address: str = Field(unique=True, index=True)
     role: UserRole = Field(
