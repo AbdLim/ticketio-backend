@@ -9,23 +9,23 @@ from app.db.repositories.base import BaseRepository
 
 class TicketRepository(BaseRepository[Ticket]):
     def __init__(self, db: AsyncSession):
-        super().__init__(Ticket, db)
+        super().__init__(db, Ticket)
 
     async def get_by_event(self, event_id: str) -> List[Ticket]:
         """
         Get all tickets for a specific event.
         """
         query = select(Ticket).where(Ticket.event_id == event_id)
-        result = await self.db.execute(query)
-        return result.scalars().all()
+        result = await self.session.exec(query)
+        return result.all()
 
     async def get_by_owner(self, owner_wallet: str) -> List[Ticket]:
         """
         Get all tickets owned by a specific wallet address.
         """
         query = select(Ticket).where(Ticket.owner_wallet == owner_wallet)
-        result = await self.db.execute(query)
-        return result.scalars().all()
+        result = await self.session.exec(query)
+        return result.all()
 
     async def get_by_token_and_serial(
         self, token_id: str, serial_number: str
@@ -40,8 +40,8 @@ class TicketRepository(BaseRepository[Ticket]):
             .join(Event)
             .where(Event.token_id == token_id, Ticket.serial_number == serial_number)
         )
-        result = await self.db.execute(query)
-        return result.scalars().first()
+        result = await self.session.exec(query)
+        return result.first()
 
     async def mark_ticket_used(self, ticket_id: str) -> Optional[Ticket]:
         """
@@ -50,5 +50,5 @@ class TicketRepository(BaseRepository[Ticket]):
         ticket = await self.get_by_id(ticket_id)
         if ticket:
             ticket.status = TicketStatus.USED
-            await self.db.commit()
+            await self.session.commit()
         return ticket

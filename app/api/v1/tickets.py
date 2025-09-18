@@ -13,13 +13,13 @@ from app.schemas.ticket import (
     TicketVerificationRequest,
     TicketVerificationResponse,
 )
-from app.services.hedera import hedera_service
-from app.services.qr import qr_service
+from app.utils.hedera import hedera_service
+from app.utils.qr import qr_service
 
-router = APIRouter()
+router = APIRouter(prefix="/tickets", tags=['ticket'])
 
 
-@router.post("/tickets/purchase", response_model=TicketPurchaseResponse)
+@router.post("/purchase", response_model=TicketPurchaseResponse)
 async def purchase_ticket(
     ticket_create: TicketCreate,
     current_user: Annotated[User, Depends(get_current_active_user)],
@@ -113,7 +113,7 @@ async def list_user_tickets(
     return tickets
 
 
-@router.post("/tickets/verify", response_model=TicketVerificationResponse)
+@router.post("/verify", response_model=TicketVerificationResponse)
 async def verify_ticket(
     verification: TicketVerificationRequest,
     current_user: Annotated[User, Depends(get_current_staff)],

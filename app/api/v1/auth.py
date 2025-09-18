@@ -4,7 +4,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import get_session
 from app.core.jwt import create_access_token
 from app.db.repositories.user import UserRepository
 from app.schemas.user import UserCreate, UserWithToken
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 )
 async def register(
     user_create: UserCreate,
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_session)],
 ):
     """
     Register a new user with their wallet address.
@@ -53,7 +53,7 @@ async def register(
 @router.post("/login", response_model=UserWithToken)
 async def login(
     wallet_address: str,
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_session)],
 ):
     """
     Login with wallet address.

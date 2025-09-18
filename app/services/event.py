@@ -5,22 +5,18 @@ from datetime import datetime
 from app.db.repositories.event import EventRepository
 from app.db.models.event import Event
 from app.schemas.event import EventCreate, EventUpdate
-from app.utils.cache import Redis
-from app.services.hedera import HederaService
+from app.utils.cache import cache
+from app.utils.hedera import hedera_service
 
 
 class EventService:
-    def __init__(
-        self, repository: EventRepository, cache: Redis, hedera: HederaService
-    ):
+    def __init__(self, repository: EventRepository):
         self.repository = repository
-        self.cache = cache
-        self.hedera = hedera
         self.cache_prefix = "event:"
         self.list_cache_key = "events:all"
 
     async def _get_from_cache(self, event_id: str) -> Optional[Event]:
-        cached_event = await self.cache.get(f"{self.cache_prefix}{event_id}")
+        cached_event = await cache.get(f"{self.cache_prefix}{event_id}")
         if cached_event:
             # Convert string dates back to datetime objects
             if cached_event.get("date"):
@@ -51,8 +47,8 @@ class EventService:
             event_dict["updated_at"] = event_dict["updated_at"].isoformat()
         if event_dict.get("deleted_at"):
             event_dict["deleted_at"] = event_dict["deleted_at"].isoformat()
-        await self.cache.set(f"{self.cache_prefix}{event.id}", event_dict)
-        await self.cache.delete(self.list_cache_key)
+        await cache.set(f"{self.cache_prefix}{event.id}", event_dict)
+        await cache.delete(self.list_cache_key)
 
     async def get(self, event_id: str) -> Optional[Event]:
         # Try cache first
@@ -68,14 +64,14 @@ class EventService:
 
     async def get_active_events(self) -> List[Event]:
         # Try cache first
-        cached_events = await self.cache.get(self.list_cache_key)
+        cached_events = await cache.get(self.list_cache_key)
         if cached_events:
             return [Event(**event) for event in cached_events]
 
         # If not in cache, get from database
         events = await self.repository.get_active_events()
         if events:
-            await self.cache.set(
+            await cache.set(
                 self.list_cache_key, [event.model_dump() for event in events]
             )
         return events
@@ -83,31 +79,12 @@ class EventService:
     async def get_organizer_events(self, organizer_id: str) -> List[Event]:
         cache_key = f"events:organizer:{organizer_id}"
         # Try cache first
-        cached_events = await self.cache.get(cache_key)
+        cached_events = await cache.get(cache_key)
         if cached_events:
             return [Event(**event) for event in cached_events]
 
         # If not in cache, get from database
         events = await self.repository.get_by_organizer(organizer_id)
         if events:
-            await self.cache.set(cache_key, [event.model_dump() for event in events])
+            await cache.set(cache_key, [event.model_dump() for event in events])
         return events
-
-    async def create_event(self, data: EventCreate, organizer_id: str) -> Event:
-        # Create NFT collection for the event
-        token_id = await self.hedera.create_nft_collection(
-            name=data.name,
-            symbol="TICKET",
-            supply=data.ticket_supply,
-            metadata_uri=f"https://api.ticketio.com/events/{data.name}",
-        )
-
-        # Create event with UUID and token ID
-        event_data = data.model_dump()
-        event_data["id"] = str(uuid4())
-        event_data["organizer_id"] = organizer_id
-        event_data["token_id"] = token_id
-
-        event = await self.repository.create(event_data)
-        await self._set_cache(event)
-        return event

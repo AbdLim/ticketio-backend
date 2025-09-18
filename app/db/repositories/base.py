@@ -12,12 +12,12 @@ class BaseRepository(Generic[ModelType]):
         self.session = session
         self.model = model
 
-    async def get_by_id(self, id: int) -> Optional[ModelType]:
+    async def get_by_id(self, id) -> Optional[ModelType]:
         stmt = select(self.model).where(self.model.id == id)
         result = await self.session.exec(stmt)
-        return result.one_or_none()
+        return result.first()
 
-    async def get_by_ids(self, ids: list[int]) -> list[ModelType]:
+    async def get_by_ids(self, ids: list) -> list[ModelType]:
         stmt = select(self.model).where(self.model.id.in_(ids))
         result = await self.session.exec(stmt)
         return result.all()
@@ -27,7 +27,11 @@ class BaseRepository(Generic[ModelType]):
         result = await self.session.exec(stmt)
         return result.all()
 
-    async def create(self, obj: ModelType) -> ModelType:
+    async def create(self, obj_data) -> ModelType:
+        if isinstance(obj_data, dict):
+            obj = self.model(**obj_data)
+        else:
+            obj = obj_data
         self.session.add(obj)
         await self.session.commit()
         await self.session.refresh(obj)
@@ -36,7 +40,7 @@ class BaseRepository(Generic[ModelType]):
     async def update(self, obj: ModelType) -> Optional[ModelType]:
         stmt = select(self.model).where(self.model.id == obj.id)
         result = await self.session.exec(stmt)
-        existing_obj = result.one_or_none()
+        existing_obj = result.first()
 
         if existing_obj:
             for key, value in obj.model_dump(exclude_unset=True).items():
@@ -46,10 +50,10 @@ class BaseRepository(Generic[ModelType]):
             return existing_obj
         return None
 
-    async def delete(self, id: int) -> bool:
+    async def delete(self, id) -> bool:
         stmt = select(self.model).where(self.model.id == id)
         result = await self.session.exec(stmt)
-        existing_obj = result.one_or_none()
+        existing_obj = result.first()
 
         if existing_obj:
             await self.session.delete(existing_obj)
@@ -57,11 +61,11 @@ class BaseRepository(Generic[ModelType]):
             return True
         return False
 
-    async def soft_delete(self, id: int) -> bool:
+    async def soft_delete(self, id) -> bool:
         """Soft delete by setting deleted_at timestamp and is_deleted flag"""
         stmt = select(self.model).where(self.model.id == id)
         result = await self.session.exec(stmt)
-        existing_obj = result.one_or_none()
+        existing_obj = result.first()
 
         if existing_obj:
             existing_obj.deleted_at = datetime.now(UTC)

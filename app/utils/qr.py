@@ -7,13 +7,15 @@ from typing import Dict
 
 class QRService:
     @staticmethod
-    def generate_ticket_qr(token_id: str, serial_number: str, owner_wallet: str) -> str:
+    def generate_ticket_qr(
+        token_id: str, serial_number: str, owner_wallet: str
+    ) -> str:
         """
         Generate a QR code for a ticket.
 
         Args:
             token_id: The Hedera token ID
-            serial_number: The NFT's serial number
+            serial_number: The NFT serial number
             owner_wallet: The wallet address of the ticket owner
 
         Returns:
@@ -24,6 +26,7 @@ class QRService:
             "token_id": token_id,
             "serial_number": serial_number,
             "owner_wallet": owner_wallet,
+            "v": "1",  # Version number for future compatibility
         }
 
         # Convert to JSON string

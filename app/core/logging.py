@@ -2,7 +2,9 @@ import logging
 import sys
 from pathlib import Path
 from typing import Dict, Any
-from app.core import settings
+from app.core.config import Settings
+
+settings = Settings()
 
 # Create logs directory if it doesn't exist
 LOGS_DIR = Path("logs")

@@ -16,4 +16,9 @@ class Event(BaseModel, table=True):
     location: str = Field()
     date: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     price: Decimal = Field(sa_column=Column(Numeric(10, 2)))
-    token_id: Optional[str] = Field(default=None)  # Hedera Token ID after minting
+    token_id: Optional[str] = Field(
+        default=None, index=True, unique=True
+    )  # Hedera NFT token ID
+    metadata_uri: Optional[str] = Field(
+        default=None
+    )  # IPFS or HTTP URI for event metadata

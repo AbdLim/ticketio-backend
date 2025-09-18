@@ -7,15 +7,18 @@ from jose import JWTError
 from app.core.jwt import verify_token
 from app.db.repositories.user import UserRepository
 from app.db.models import User, UserRole
-from app.db.session import get_db
+from app.db.session import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
+
+# Alias for backward compatibility
+get_db = get_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/login")
 
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_session)],
 ) -> User:
     """
     Get the current authenticated user from the JWT token.

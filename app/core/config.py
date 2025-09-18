@@ -9,12 +9,12 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
     # Application
-    APP_NAME: str = os.getenv("APP_NAME", "TicketIO")
+    PROJECT_NAME: str = os.getenv("APP_NAME", "TicketIO")
     VERSION: str = "0.0.1"
-    API_V1_STR: str = "/v1"
+    API_V1_STR: str = "/api/v1"
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     DEBUG: bool = ENVIRONMENT == "development"
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
@@ -49,6 +49,15 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
 
+    # Hedera
+    HEDERA_NETWORK: str = os.getenv("HEDERA_NETWORK", "testnet")
+    HEDERA_OPERATOR_ID: str = os.getenv("HEDERA_OPERATOR_ID")
+    HEDERA_OPERATOR_KEY: str = os.getenv("HEDERA_OPERATOR_KEY")
+    HEDERA_OPERATOR_ADDRESS: str = os.getenv("HEDERA_OPERATOR_ADDRESS")
+    HEDERA_MIRROR_NODE_URL: str = os.getenv(
+        "HEDERA_MIRROR_NODE_URL", "https://testnet.mirrornode.hedera.com/api/v1/"
+    )
+
     @field_validator("BACKEND_CORS_ORIGINS", mode="before")
     def assemble_cors_origins(cls, v: str | List[str]) -> List[str] | str:
         if isinstance(v, str) and not v.startswith("["):
@@ -62,12 +71,4 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
-    )
-
-    # Hedera Configuration
-    HEDERA_NETWORK: str = os.getenv("HEDERA_NETWORK", "testnet")
-    HEDERA_OPERATOR_ID: str = os.getenv("HEDERA_OPERATOR_ID")
-    HEDERA_OPERATOR_KEY: str = os.getenv("HEDERA_OPERATOR_KEY")
-    HEDERA_MIRROR_NODE_URL: str = os.getenv(
-        "HEDERA_MIRROR_NODE_URL", "https://testnet.mirrornode.hedera.com/api/v1/"
     )

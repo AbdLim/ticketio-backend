@@ -1,5 +1,4 @@
 from datetime import datetime
-from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel
 
@@ -9,7 +8,7 @@ class EventBase(BaseModel):
     description: Optional[str] = None
     location: str
     date: datetime
-    price: Decimal
+    price: float
 
 
 class EventCreate(EventBase):
@@ -21,7 +20,7 @@ class EventUpdate(BaseModel):
     description: Optional[str] = None
     location: Optional[str] = None
     date: Optional[datetime] = None
-    price: Optional[Decimal] = None
+    price: Optional[float] = None
 
 
 class EventInDB(EventBase):

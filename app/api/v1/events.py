@@ -1,8 +1,12 @@
 from typing import Annotated, List
+from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_organizer
 from app.db.models import User
+from app.db.repositories.event import EventRepository
+from app.db.session import get_session
 from app.schemas.event import (
     EventCreate,
     EventResponse,
@@ -10,12 +14,13 @@ from app.schemas.event import (
 )
 from app.services import get_event_service
 from app.services.event import EventService
+from app.utils.hedera import hedera_service
 
-router = APIRouter()
+router = APIRouter(tags=["events"])
 
 
 # Public endpoints
-@router.get("/events", response_model=List[EventResponse])
+@router.get("/events")
 async def list_events(
     event_service: Annotated[EventService, Depends(get_event_service)],
 ):
@@ -46,7 +51,7 @@ async def get_event(
 async def create_event(
     event_create: EventCreate,
     current_user: Annotated[User, Depends(get_current_organizer)],
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_session)],
 ):
     """
     Create a new event and mint NFT collection.
@@ -77,7 +82,7 @@ async def create_event(
 @router.get("/organizer/events", response_model=List[EventResponse])
 async def list_organizer_events(
     current_user: Annotated[User, Depends(get_current_organizer)],
-    db: Annotated[AsyncSession, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_session)],
 ):
     """
     List all events created by the current organizer.

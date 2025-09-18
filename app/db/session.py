@@ -2,7 +2,9 @@ from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-from app.core import settings
+from app.core.config import Settings
+
+settings = Settings()
 
 # Convert the database URL to async format
 async_db_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
