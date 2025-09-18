@@ -1016,3 +1016,4 @@ FROM events
 WHERE events.date > $1::TIMESTAMP WITH TIME ZONE
 2025-09-18 11:57:39 - sqlalchemy.engine.Engine - INFO - [generated in 0.00091s] (datetime.datetime(2025, 9, 18, 10, 57, 39, 725974),)
 2025-09-18 11:57:39 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-09-18 11:58:36 - app - INFO - Shutting down application...
