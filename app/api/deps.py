@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status, Header
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 
 from app.core.jwt import verify_token
@@ -12,34 +13,21 @@ from app.db.session import get_session
 # Alias for backward compatibility
 get_db = get_session
 
-
-def extract_token_from_header(authorization: str = Header(None)) -> str:
-    """
-    Extract JWT token from Authorization header.
-    """
-    if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header missing",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header format",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    return authorization.split(" ")[1]
+# OAuth2-style JWT Bearer token scheme
+jwt_bearer_scheme = HTTPBearer(
+    scheme_name="JWT Bearer",
+    description="JWT Bearer token authentication",
+    auto_error=True,
+)
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(extract_token_from_header)],
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(jwt_bearer_scheme)],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> User:
     """
     Get the current authenticated user from the JWT token.
+    Uses OAuth2-style Bearer token authentication with JWT.
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,6 +36,8 @@ async def get_current_user(
     )
 
     try:
+        # Extract token from credentials
+        token = credentials.credentials
         payload = verify_token(token)
         wallet_address: str = payload.get("sub")
         if wallet_address is None:
