@@ -1,12 +1,8 @@
 from typing import Annotated, List
-from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_organizer
 from app.db.models import User
-from app.db.repositories.event import EventRepository
-from app.db.session import get_session
 from app.schemas.event import (
     EventCreate,
     EventResponse,
@@ -14,7 +10,6 @@ from app.schemas.event import (
 )
 from app.services import get_event_service
 from app.services.event import EventService
-from app.utils.hedera import hedera_service
 
 router = APIRouter(tags=["events"])
 
@@ -51,42 +46,20 @@ async def get_event(
 async def create_event(
     event_create: EventCreate,
     current_user: Annotated[User, Depends(get_current_organizer)],
-    db: Annotated[AsyncSession, Depends(get_session)],
+    event_service: Annotated[EventService, Depends(get_event_service)],
 ):
     """
     Create a new event and mint NFT collection.
     """
-    # Create event with UUID
-    event_dict = event_create.model_dump()
-    event_id = str(uuid4())
-    event_dict["id"] = event_id
-    event_dict["organizer_id"] = current_user.id
-
-    # Create NFT collection
-    token_id = await hedera_service.create_nft_collection(
-        name=event_create.name,
-        symbol="TICKET",  # You might want to make this configurable
-        supply=event_create.ticket_supply,
-        metadata_uri=f"https://api.ticketio.com/events/{event_id}",  # Replace with your metadata URI
-    )
-
-    event_dict["token_id"] = token_id
-
-    # Save event to database
-    event_repo = EventRepository(db)
-    await event_repo.create(event_dict)
-
-    return EventCreatedResponse(event_id=event_id, token_id=token_id)
+    return await event_service.create_event(event_create, current_user.id)
 
 
 @router.get("/organizer/events", response_model=List[EventResponse])
 async def list_organizer_events(
     current_user: Annotated[User, Depends(get_current_organizer)],
-    db: Annotated[AsyncSession, Depends(get_session)],
+    event_service: Annotated[EventService, Depends(get_event_service)],
 ):
     """
     List all events created by the current organizer.
     """
-    event_repo = EventRepository(db)
-    events = await event_repo.get_by_organizer(current_user.id)
-    return events
+    return await event_service.get_organizer_events(current_user.id)

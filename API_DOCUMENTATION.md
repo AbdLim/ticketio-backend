@@ -16,6 +16,8 @@ Most endpoints require JWT authentication using Bearer tokens. Include the token
 Authorization: Bearer <your_jwt_token>
 ```
 
+**Note:** The system now uses pure JWT authentication instead of OAuth2. Tokens are extracted directly from the Authorization header.
+
 ---
 
 ## Authentication Endpoints

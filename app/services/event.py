@@ -2,9 +2,11 @@ from typing import List, Optional
 from uuid import uuid4
 from datetime import datetime
 
+from fastapi import HTTPException, status
+
 from app.db.repositories.event import EventRepository
 from app.db.models.event import Event
-from app.schemas.event import EventCreate, EventUpdate
+from app.schemas.event import EventCreate, EventCreatedResponse
 from app.utils.cache import cache
 from app.utils.hedera import hedera_service
 
@@ -88,3 +90,39 @@ class EventService:
         if events:
             await cache.set(cache_key, [event.model_dump() for event in events])
         return events
+
+    async def create_event(
+        self, event_create: EventCreate, organizer_id: str
+    ) -> EventCreatedResponse:
+        """
+        Create a new event and mint NFT collection.
+        """
+        # Create event with UUID
+        event_dict = event_create.model_dump()
+        event_id = str(uuid4())
+        event_dict["id"] = event_id
+        event_dict["organizer_id"] = organizer_id
+
+        try:
+            # Create NFT collection
+            token_id = await hedera_service.create_nft_collection(
+                name=event_create.name,
+                symbol="TICKET",
+                supply=event_create.ticket_supply,
+                metadata_uri=f"https://api.ticketio.com/events/{event_id}",
+            )
+            event_dict["token_id"] = token_id
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create NFT collection: {str(e)}",
+            )
+
+        # Save event to database
+        await self.repository.create(event_dict)
+
+        # Invalidate cache
+        await cache.delete(self.list_cache_key)
+        await cache.delete(f"events:organizer:{organizer_id}")
+
+        return EventCreatedResponse(event_id=event_id, token_id=token_id)

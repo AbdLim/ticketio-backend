@@ -1,24 +1,42 @@
-from typing import Annotated, Optional
+from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Header
 from jose import JWTError
 
 from app.core.jwt import verify_token
-from app.db.repositories.user import UserRepository
+from app.services import get_auth_service
+from app.services.auth import AuthService
 from app.db.models import User, UserRole
 from app.db.session import get_session
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # Alias for backward compatibility
 get_db = get_session
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="v1/auth/login")
+
+def extract_token_from_header(authorization: str = Header(None)) -> str:
+    """
+    Extract JWT token from Authorization header.
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return authorization.split(" ")[1]
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_session)],
+    token: Annotated[str, Depends(extract_token_from_header)],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ) -> User:
     """
     Get the current authenticated user from the JWT token.
@@ -37,9 +55,7 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
 
-    user_repo = UserRepository(db)
-    user = await user_repo.get_by_wallet(wallet_address)
-
+    user = await auth_service.get_user_by_wallet(wallet_address)
     if user is None:
         raise credentials_exception
 
