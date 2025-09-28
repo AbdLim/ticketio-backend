@@ -1,9 +1,7 @@
 from typing import Dict, Optional
 import asyncio
 import aiohttp
-import json
 import time
-from datetime import datetime, timedelta
 
 from app.core.config import Settings
 
@@ -16,7 +14,7 @@ class HederaService:
         self.operator_id = settings.HEDERA_OPERATOR_ID
         self.operator_key = settings.HEDERA_OPERATOR_KEY
         self.mirror_node_url = settings.HEDERA_MIRROR_NODE_URL
-        
+
         # For demo purposes, we'll simulate Hedera operations
         # In production, you would use the actual Hedera SDK
         self._token_counter = 1000000  # Starting token ID counter
@@ -26,7 +24,7 @@ class HederaService:
     ) -> str:
         """
         Create a new NFT collection on Hedera.
-        
+
         For demo purposes, this simulates creating an NFT collection.
         In production, you would use the Hedera SDK to create a token.
 
@@ -42,11 +40,11 @@ class HederaService:
         try:
             # Simulate network delay
             await asyncio.sleep(0.1)
-            
+
             # Generate a mock token ID
             token_id = f"0.0.{self._token_counter}"
             self._token_counter += 1
-            
+
             print(f"Created NFT collection '{name}' with token ID: {token_id}")
             return token_id
 
@@ -67,10 +65,10 @@ class HederaService:
         try:
             # Simulate network delay
             await asyncio.sleep(0.1)
-            
+
             # Generate a mock serial number
             serial_number = str(int(time.time() * 1000) % 1000000)
-            
+
             print(f"Minted NFT with token ID: {token_id}, serial: {serial_number}")
             return serial_number
 
@@ -94,7 +92,7 @@ class HederaService:
         try:
             # Simulate network delay
             await asyncio.sleep(0.1)
-            
+
             print(f"Transferred NFT {token_id}:{serial_number} to {receiver_id}")
             return True
 
@@ -119,7 +117,7 @@ class HederaService:
         try:
             # Query the Mirror Node API for NFT ownership
             url = f"{self.mirror_node_url}/tokens/{token_id}/nfts/{serial_number}"
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as response:
                     if response.status == 200:
@@ -133,11 +131,9 @@ class HederaService:
         except Exception as e:
             print(f"NFT ownership verification failed: {str(e)}")
             # For demo purposes, return True if it's a valid format
-            return len(token_id.split('.')) == 3 and serial_number.isdigit()
+            return len(token_id.split(".")) == 3 and serial_number.isdigit()
 
-    async def get_nft_info(
-        self, token_id: str, serial_number: str
-    ) -> Optional[Dict]:
+    async def get_nft_info(self, token_id: str, serial_number: str) -> Optional[Dict]:
         """
         Get information about a specific NFT using the Mirror Node.
 

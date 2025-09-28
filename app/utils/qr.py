@@ -7,9 +7,7 @@ from typing import Dict
 
 class QRService:
     @staticmethod
-    def generate_ticket_qr(
-        token_id: str, serial_number: str, owner_wallet: str
-    ) -> str:
+    def generate_ticket_qr(token_id: str, serial_number: str, owner_wallet: str) -> str:
         """
         Generate a QR code for a ticket.
 
