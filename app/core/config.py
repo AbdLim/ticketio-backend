@@ -9,7 +9,9 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=True, extra="ignore"
+    )
 
     # Application
     PROJECT_NAME: str = os.getenv("APP_NAME", "TicketIO")
@@ -53,7 +55,7 @@ class Settings(BaseSettings):
     HEDERA_NETWORK: str = os.getenv("HEDERA_NETWORK", "testnet")
     HEDERA_OPERATOR_ID: str = os.getenv("HEDERA_OPERATOR_ID")
     HEDERA_OPERATOR_KEY: str = os.getenv("HEDERA_OPERATOR_KEY")
-    HEDERA_OPERATOR_ADDRESS: str = os.getenv("HEDERA_OPERATOR_ADDRESS")
+    HEDERA_OPERATOR_ADDRESS: Optional[str] = os.getenv("HEDERA_OPERATOR_ADDRESS")
     HEDERA_MIRROR_NODE_URL: str = os.getenv(
         "HEDERA_MIRROR_NODE_URL", "https://testnet.mirrornode.hedera.com/api/v1/"
     )
