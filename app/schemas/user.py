@@ -34,3 +34,12 @@ class UserResponse(UserInDB):
 
 class UserWithToken(UserResponse):
     token: str
+
+
+class UserWithBalance(UserResponse):
+    hbar_balance: float
+    last_balance_check: datetime
+
+
+class UserWithTokenAndBalance(UserWithBalance):
+    token: str

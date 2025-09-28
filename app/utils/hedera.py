@@ -1,13 +1,17 @@
-from typing import Dict, Optional, List
+"""
+Corrected Hedera implementation based on actual SDK API.
+"""
+
 import asyncio
 import aiohttp
 import logging
-from datetime import datetime
+from typing import Dict, Optional, List
 
 from hedera import (
     Client,
     PrivateKey,
     AccountId,
+    TokenId,
     TokenCreateTransaction,
     TokenType,
     TokenSupplyType,
@@ -43,21 +47,21 @@ class HederaService:
         """Get or create Hedera client instance."""
         if self._client is None:
             try:
-                # Parse operator credentials
-                self._operator_account_id = AccountId.from_string(self.operator_id)
-                self._operator_private_key = PrivateKey.from_string(self.operator_key)
+                # Parse operator credentials (corrected API)
+                self._operator_account_id = AccountId.fromString(self.operator_id)
+                self._operator_private_key = PrivateKey.fromString(self.operator_key)
 
-                # Create client based on network
+                # Create client based on network (corrected API)
                 if self.network.lower() == "testnet":
-                    self._client = Client.for_testnet()
+                    self._client = Client.forTestnet()
                 elif self.network.lower() == "mainnet":
-                    self._client = Client.for_mainnet()
+                    self._client = Client.forMainnet()
                 else:
                     # Default to testnet for development
-                    self._client = Client.for_testnet()
+                    self._client = Client.forTestnet()
 
-                # Set operator
-                self._client.set_operator(
+                # Set operator (corrected API)
+                self._client.setOperator(
                     self._operator_account_id, self._operator_private_key
                 )
 
@@ -79,58 +83,44 @@ class HederaService:
     ) -> str:
         """
         Create a new NFT collection on Hedera.
-
-        Args:
-            name: Name of the NFT collection
-            symbol: Symbol for the NFT collection
-            supply: Maximum supply of NFTs (0 for unlimited)
-            metadata_uri: Base URI for token metadata
-            treasury_account: Treasury account ID (defaults to operator)
-
-        Returns:
-            str: The Hedera token ID (e.g., "0.0.123456")
         """
         try:
             client = self._get_client()
 
             # Use operator account as treasury if not specified
             treasury_id = (
-                AccountId.from_string(treasury_account)
+                AccountId.fromString(treasury_account)
                 if treasury_account
                 else self._operator_account_id
             )
 
-            # Create NFT token
+            # Create NFT token (corrected API)
             token_create_tx = (
                 TokenCreateTransaction()
-                .set_token_name(name)
-                .set_token_symbol(symbol)
-                .set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
-                .set_decimals(0)
-                .set_initial_supply(0)
-                .set_treasury_account_id(treasury_id)
-                .set_supply_type(
+                .setTokenName(name)
+                .setTokenSymbol(symbol)
+                .setTokenType(TokenType.NON_FUNGIBLE_UNIQUE)
+                .setDecimals(0)
+                .setInitialSupply(0)
+                .setTreasuryAccountId(treasury_id)
+                .setSupplyType(
                     TokenSupplyType.FINITE if supply > 0 else TokenSupplyType.INFINITE
                 )
-                .set_max_supply(supply if supply > 0 else None)
-                .set_supply_key(self._operator_private_key)
-                .set_admin_key(self._operator_private_key)
-                .set_freeze_default(False)
-                .set_max_transaction_fee(Hbar(30))
+                .setMaxSupply(supply if supply > 0 else 0)
+                .setSupplyKey(self._operator_private_key)
+                .setAdminKey(self._operator_private_key)
+                .setFreezeDefault(False)
+                .setMaxTransactionFee(Hbar.fromTinybars(3000000000))  # 30 HBAR
             )
 
             # Execute transaction
-            token_create_submit = await asyncio.to_thread(
-                token_create_tx.execute, client
-            )
-            token_create_receipt = await asyncio.to_thread(
-                token_create_submit.get_receipt, client
-            )
+            token_create_submit = token_create_tx.execute(client)
+            token_create_receipt = token_create_submit.getReceipt(client)
 
             if token_create_receipt.status != Status.SUCCESS:
                 raise Exception(f"Token creation failed: {token_create_receipt.status}")
 
-            token_id = str(token_create_receipt.token_id)
+            token_id = token_create_receipt.tokenId.toString()
             logger.info(f"Created NFT collection '{name}' with ID: {token_id}")
 
             return token_id
@@ -144,14 +134,6 @@ class HederaService:
     ) -> str:
         """
         Mint a new NFT from the collection.
-
-        Args:
-            token_id: The Hedera token ID
-            metadata: Metadata for this specific NFT (base64 encoded)
-            recipient_account: Account to mint to (defaults to treasury)
-
-        Returns:
-            str: The serial number of the minted NFT
         """
         try:
             client = self._get_client()
@@ -159,24 +141,27 @@ class HederaService:
             # Convert metadata to bytes
             metadata_bytes = metadata.encode("utf-8")
 
-            # Create mint transaction
+            # Create mint transaction (corrected API)
+            # Parse token_id string back to TokenId object
+            token_id_obj = TokenId.fromString(token_id)
+
             mint_tx = (
                 TokenMintTransaction()
-                .set_token_id(token_id)
-                .add_metadata(metadata_bytes)
-                .set_max_transaction_fee(Hbar(20))
+                .setTokenId(token_id_obj)
+                .addMetadata(metadata_bytes)
+                .setMaxTransactionFee(Hbar.fromTinybars(2000000000))  # 20 HBAR
             )
 
             # Execute transaction
-            mint_submit = await asyncio.to_thread(mint_tx.execute, client)
-            mint_receipt = await asyncio.to_thread(mint_submit.get_receipt, client)
+            mint_submit = mint_tx.execute(client)
+            mint_receipt = mint_submit.getReceipt(client)
 
             if mint_receipt.status != Status.SUCCESS:
                 raise Exception(f"Minting failed: {mint_receipt.status}")
 
             # Get the serial number from receipt
-            serial_numbers = mint_receipt.serial_numbers
-            if not serial_numbers:
+            serial_numbers = mint_receipt.serials
+            if not serial_numbers or len(serial_numbers) == 0:
                 raise Exception("No serial number returned from mint")
 
             serial_number = str(serial_numbers[0])
@@ -197,56 +182,54 @@ class HederaService:
     ) -> bool:
         """
         Transfer an NFT to a new owner.
-
-        Args:
-            token_id: The Hedera token ID
-            serial_number: The NFT serial number
-            receiver_id: The receiver's account ID
-            sender_id: The sender's account ID (defaults to operator)
-
-        Returns:
-            bool: True if transfer was successful
         """
         try:
             client = self._get_client()
 
             # Use operator as sender if not specified
             sender_account_id = (
-                AccountId.from_string(sender_id)
+                AccountId.fromString(sender_id)
                 if sender_id
                 else self._operator_account_id
             )
-            receiver_account_id = AccountId.from_string(receiver_id)
+            receiver_account_id = AccountId.fromString(receiver_id)
 
-            # First, associate token with receiver account if needed
+            # First, try to associate token with receiver account
             try:
+                # Parse token_id for association
+                token_id_obj = TokenId.fromString(token_id)
+
                 associate_tx = (
                     TokenAssociateTransaction()
-                    .set_account_id(receiver_account_id)
-                    .add_token_id(token_id)
-                    .set_max_transaction_fee(Hbar(5))
+                    .setAccountId(receiver_account_id)
+                    .setTokenIds([token_id_obj])
+                    .setMaxTransactionFee(Hbar.fromTinybars(500000000))  # 5 HBAR
                 )
 
                 # This might fail if already associated, which is fine
-                await asyncio.to_thread(associate_tx.execute, client)
+                associate_tx.execute(client)
             except Exception:
                 # Token might already be associated
                 pass
 
-            # Create transfer transaction
+            # Create transfer transaction (corrected API)
+            # Parse token_id string to TokenId object
+            token_id_obj = TokenId.fromString(token_id)
+
             transfer_tx = (
                 TransferTransaction()
-                .add_nft_transfer(
-                    token_id, int(serial_number), sender_account_id, receiver_account_id
+                .addNftTransfer(
+                    token_id_obj,
+                    int(serial_number),
+                    sender_account_id,
+                    receiver_account_id,
                 )
-                .set_max_transaction_fee(Hbar(5))
+                .setMaxTransactionFee(Hbar.fromTinybars(500000000))  # 5 HBAR
             )
 
             # Execute transaction
-            transfer_submit = await asyncio.to_thread(transfer_tx.execute, client)
-            transfer_receipt = await asyncio.to_thread(
-                transfer_submit.get_receipt, client
-            )
+            transfer_submit = transfer_tx.execute(client)
+            transfer_receipt = transfer_submit.getReceipt(client)
 
             success = transfer_receipt.status == Status.SUCCESS
             if success:
@@ -267,36 +250,9 @@ class HederaService:
     ) -> bool:
         """
         Verify if a wallet owns a specific NFT using Hedera Mirror Node.
-
-        Args:
-            token_id: The Hedera token ID
-            serial_number: The NFT serial number
-            wallet_address: The wallet address to verify
-
-        Returns:
-            bool: True if the wallet owns the NFT
         """
         try:
-            # First try using the Hedera SDK
-            client = self._get_client()
-
-            nft_info_query = (
-                TokenNftInfoQuery()
-                .set_token_id(token_id)
-                .set_serial_number(int(serial_number))
-            )
-
-            nft_info = await asyncio.to_thread(nft_info_query.execute, client)
-
-            if nft_info and len(nft_info) > 0:
-                owner_account_id = str(nft_info[0].account_id)
-                return owner_account_id == wallet_address
-
-        except Exception as e:
-            logger.warning(f"SDK ownership check failed: {e}")
-
-        # Fallback to Mirror Node API
-        try:
+            # Use Mirror Node API for verification
             url = (
                 f"{self.mirror_node_url}/api/v1/tokens/"
                 f"{token_id}/nfts/{serial_number}"
@@ -320,43 +276,8 @@ class HederaService:
 
     async def get_nft_info(self, token_id: str, serial_number: str) -> Optional[Dict]:
         """
-        Get information about a specific NFT.
-
-        Args:
-            token_id: The Hedera token ID
-            serial_number: The NFT serial number
-
-        Returns:
-            Optional[Dict]: NFT information including owner and metadata
+        Get information about a specific NFT using Mirror Node.
         """
-        try:
-            # Try SDK first
-            client = self._get_client()
-
-            nft_info_query = (
-                TokenNftInfoQuery()
-                .set_token_id(token_id)
-                .set_serial_number(int(serial_number))
-            )
-
-            nft_info = await asyncio.to_thread(nft_info_query.execute, client)
-
-            if nft_info and len(nft_info) > 0:
-                info = nft_info[0]
-                return {
-                    "token_id": token_id,
-                    "serial_number": serial_number,
-                    "owner": str(info.account_id),
-                    "metadata": (
-                        info.metadata.decode("utf-8") if info.metadata else None
-                    ),
-                    "created_at": str(info.creation_time),
-                }
-
-        except Exception as e:
-            logger.warning(f"SDK NFT info query failed: {e}")
-
-        # Fallback to Mirror Node
         try:
             url = (
                 f"{self.mirror_node_url}/api/v1/tokens/"
@@ -379,60 +300,6 @@ class HederaService:
 
         except Exception as e:
             logger.error(f"Failed to get NFT info: {e}")
-            return None
-
-    async def get_account_nfts(self, account_id: str) -> List[Dict]:
-        """
-        Get all NFTs owned by an account.
-
-        Args:
-            account_id: The Hedera account ID
-
-        Returns:
-            List[Dict]: List of NFTs owned by the account
-        """
-        try:
-            url = f"{self.mirror_node_url}/api/v1/accounts/" f"{account_id}/nfts"
-
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        return data.get("nfts", [])
-            return []
-
-        except Exception as e:
-            logger.error(f"Failed to get account NFTs: {e}")
-            return []
-
-    async def get_token_info(self, token_id: str) -> Optional[Dict]:
-        """
-        Get information about a token.
-
-        Args:
-            token_id: The Hedera token ID
-
-        Returns:
-            Optional[Dict]: Token information
-        """
-        try:
-            client = self._get_client()
-
-            token_info_query = TokenInfoQuery().set_token_id(token_id)
-            token_info = await asyncio.to_thread(token_info_query.execute, client)
-
-            return {
-                "token_id": str(token_info.token_id),
-                "name": token_info.name,
-                "symbol": token_info.symbol,
-                "treasury_account": str(token_info.treasury_account_id),
-                "supply_type": str(token_info.supply_type),
-                "max_supply": token_info.max_supply,
-                "total_supply": token_info.total_supply,
-            }
-
-        except Exception as e:
-            logger.error(f"Failed to get token info: {e}")
             return None
 
     def close(self):

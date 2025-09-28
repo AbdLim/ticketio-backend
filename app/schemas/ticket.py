@@ -14,6 +14,8 @@ class TicketBase(BaseModel):
 class TicketCreate(BaseModel):
     event_id: str
     buyer_wallet: str
+    payment_method: str = "card"  # card, paypal, crypto, etc.
+    payment_token: Optional[str] = None  # Payment method token from frontend
 
 
 class TicketUpdate(BaseModel):
@@ -37,6 +39,9 @@ class TicketPurchaseResponse(BaseModel):
     token_id: str
     serial_number: str
     qr_data: str  # base64 encoded QR code
+    payment_id: str
+    amount_paid: float
+    currency: str = "HBAR"
 
 
 class TicketVerificationRequest(BaseModel):

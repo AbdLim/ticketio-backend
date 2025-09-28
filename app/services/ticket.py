@@ -82,29 +82,59 @@ class TicketService:
                 detail="Event tickets not available yet",
             )
 
-        # Mint new NFT ticket
+        # Step 1: Process Payment FIRST
+        from app.services.payment import payment_service
+
+        payment_result = await payment_service.process_payment(
+            amount=event.price,
+            currency="USD",
+            payment_method=ticket_create.payment_method,
+            metadata={
+                "event_id": event.id,
+                "event_name": event.name,
+                "buyer_wallet": ticket_create.buyer_wallet,
+            },
+        )
+
+        if not payment_result["success"]:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=f"Payment failed: {payment_result.get('error', 'Unknown error')}",
+            )
+
+        payment_id = payment_result["payment_id"]
+
+        # Step 2: Mint NFT ticket (after successful payment)
         try:
             serial_number = await hedera_service.mint_nft(
                 token_id=event.token_id,
                 metadata=f"Event: {event.name}, Date: {event.date}",
             )
         except Exception as e:
+            # Payment succeeded but NFT minting failed - refund the payment
+            await payment_service.refund_payment(payment_id)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to mint NFT ticket: {str(e)}",
+                detail=f"Failed to mint NFT ticket: {str(e)}. Payment has been refunded.",
             )
 
-        # Transfer NFT to buyer
-        success = await hedera_service.transfer_nft(
-            token_id=event.token_id,
-            serial_number=serial_number,
-            receiver_id=ticket_create.buyer_wallet,
-        )
+        # Step 3: Transfer NFT to buyer
+        try:
+            success = await hedera_service.transfer_nft(
+                token_id=event.token_id,
+                serial_number=serial_number,
+                receiver_id=ticket_create.buyer_wallet,
+            )
 
-        if not success:
+            if not success:
+                raise Exception("Transfer returned False")
+
+        except Exception as e:
+            # NFT minted but transfer failed - refund the payment
+            await payment_service.refund_payment(payment_id)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to transfer NFT ticket",
+                detail=f"Failed to transfer NFT ticket: {str(e)}. Payment has been refunded.",
             )
 
         # Save ticket in database
@@ -133,6 +163,9 @@ class TicketService:
             token_id=event.token_id,
             serial_number=serial_number,
             qr_data=qr_data,
+            payment_id=payment_id,
+            amount_paid=event.price,
+            currency="USD",
         )
 
     async def verify_ticket(
