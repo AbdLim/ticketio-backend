@@ -22,7 +22,7 @@ async def register(
     Register a new user with their wallet address.
     """
     return await auth_service.create_new_hedera_account(
-        email=user_create.email, name=user_create.name
+        email=user_create.email, name=user_create.name, role=user_create.role
     )
 
 

@@ -1215,3 +1215,128 @@ WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible
 2025-10-03 16:20:15 - sqlalchemy.engine.Engine - INFO - [cached since 0.002647s ago] ('ticketstatus', 'pg_catalog')
 2025-10-03 16:20:15 - sqlalchemy.engine.Engine - INFO - COMMIT
 2025-10-03 16:20:15 - app - INFO - App running...
+2025-10-03 16:33:32 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:33:32 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.wallet_address = $1::VARCHAR
+2025-10-03 16:33:32 - sqlalchemy.engine.Engine - INFO - [generated in 0.00025s] ('0.0.123456',)
+2025-10-03 16:33:32 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:34:13 - app.services.hedera_wallet - ERROR - Failed to create Hedera account: JVM exception occurred: java.util.concurrent.TimeoutException
+java.util.concurrent.TimeoutException
+	com.hedera.hashgraph.sdk.Executable.execute(Executable.java:417)
+	com.hedera.hashgraph.sdk.Transaction.execute(Transaction.java:36)
+	com.hedera.hashgraph.sdk.Executable.execute(Executable.java:353)
+	com.hedera.hashgraph.sdk.Transaction.execute(Transaction.java:36)
+2025-10-03 16:34:37 - app.services.hedera_wallet - INFO - Created new Hedera account: 0.0.6943711
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (id, created_at, updated_at, is_deleted, name, email, wallet_address, role) VALUES ($1::VARCHAR, $2::TIMESTAMP WITHOUT TIME ZONE, $3::TIMESTAMP WITHOUT TIME ZONE, $4::BOOLEAN, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::userrole)
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - [generated in 0.00033s] ('a1a582f2-8bc2-4d3d-b7d2-6ef2e57085d1', datetime.datetime(2025, 10, 3, 15, 34, 37, 187907), None, False, 'LimLim', 'rtrgmr0@gmail.com', '0.0.6943711', 'ATTENDEE')
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.id = $1::VARCHAR
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - [generated in 0.00010s] ('a1a582f2-8bc2-4d3d-b7d2-6ef2e57085d1',)
+2025-10-03 16:34:37 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:35:55 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:35:55 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.wallet_address = $1::VARCHAR
+2025-10-03 16:35:55 - sqlalchemy.engine.Engine - INFO - [cached since 143s ago] ('0.0.6943711',)
+2025-10-03 16:35:55 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:36:02 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:36:02 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.wallet_address = $1::VARCHAR
+2025-10-03 16:36:02 - sqlalchemy.engine.Engine - INFO - [cached since 149.8s ago] ('0.0.6943711',)
+2025-10-03 16:36:02 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:36:12 - app.services.hedera_wallet - INFO - Retrieved balance for 0.0.6943711: 10.0 HBAR
+2025-10-03 16:36:24 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:36:24 - sqlalchemy.engine.Engine - INFO - SELECT events.id, events.created_at, events.updated_at, events.is_deleted, events.organizer_id, events.name, events.description, events.location, events.date, events.price, events.token_id, events.metadata_uri 
+FROM events 
+WHERE events.date > $1::TIMESTAMP WITH TIME ZONE
+2025-10-03 16:36:24 - sqlalchemy.engine.Engine - INFO - [generated in 0.00023s] (datetime.datetime(2025, 10, 3, 15, 36, 24, 212675),)
+2025-10-03 16:36:24 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:39:46 - app - INFO - Shutting down application...
+2025-10-03 16:39:48 - app - INFO - Application TicketIO v0.0.1 initialized
+2025-10-03 16:39:48 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-10-03 16:39:48 - app - INFO - Starting application...
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [generated in 0.00049s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [cached since 0.006686s ago] ('events', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [cached since 0.007968s ago] ('tickets', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [generated in 0.00016s] ('userrole', 'pg_catalog')
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - [cached since 0.00252s ago] ('ticketstatus', 'pg_catalog')
+2025-10-03 16:39:48 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-10-03 16:39:48 - app - INFO - App running...
+2025-10-03 16:40:38 - app - INFO - Shutting down application...
+2025-10-03 16:40:40 - app - INFO - Application TicketIO v0.0.1 initialized
+2025-10-03 16:40:40 - asyncio - DEBUG - Using selector: KqueueSelector
+2025-10-03 16:40:40 - app - INFO - Starting application...
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - select pg_catalog.version()
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - select current_schema()
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - show standard_conforming_strings
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [raw sql] ()
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [generated in 0.00019s] ('users', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [cached since 0.003802s ago] ('events', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_class.relname 
+FROM pg_catalog.pg_class JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_class.relnamespace 
+WHERE pg_catalog.pg_class.relname = $1::VARCHAR AND pg_catalog.pg_class.relkind = ANY (ARRAY[$2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::VARCHAR, $6::VARCHAR]) AND pg_catalog.pg_table_is_visible(pg_catalog.pg_class.oid) AND pg_catalog.pg_namespace.nspname != $7::VARCHAR
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [cached since 0.004506s ago] ('tickets', 'r', 'p', 'f', 'v', 'm', 'pg_catalog')
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [generated in 0.00009s] ('userrole', 'pg_catalog')
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - SELECT pg_catalog.pg_type.typname 
+FROM pg_catalog.pg_type JOIN pg_catalog.pg_namespace ON pg_catalog.pg_namespace.oid = pg_catalog.pg_type.typnamespace 
+WHERE pg_catalog.pg_type.typname = $1::VARCHAR AND pg_catalog.pg_type_is_visible(pg_catalog.pg_type.oid) AND pg_catalog.pg_namespace.nspname != $2::VARCHAR
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - [cached since 0.001512s ago] ('ticketstatus', 'pg_catalog')
+2025-10-03 16:40:40 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-10-03 16:40:40 - app - INFO - App running...
+2025-10-03 16:41:01 - app.services.hedera_wallet - INFO - Created new Hedera account: 0.0.6943779
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - INSERT INTO users (id, created_at, updated_at, is_deleted, name, email, wallet_address, role) VALUES ($1::VARCHAR, $2::TIMESTAMP WITHOUT TIME ZONE, $3::TIMESTAMP WITHOUT TIME ZONE, $4::BOOLEAN, $5::VARCHAR, $6::VARCHAR, $7::VARCHAR, $8::userrole)
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - [generated in 0.00025s] ('f6461579-ec41-4298-a71d-aa149a5ca783', datetime.datetime(2025, 10, 3, 15, 41, 1, 205582), None, False, 'LimLimLim', 'rtrgmr1@gmail.com', '0.0.6943779', 'ORGANIZER')
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - COMMIT
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.id = $1::VARCHAR
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - [generated in 0.00017s] ('f6461579-ec41-4298-a71d-aa149a5ca783',)
+2025-10-03 16:41:01 - sqlalchemy.engine.Engine - INFO - ROLLBACK
+2025-10-03 16:41:19 - sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+2025-10-03 16:41:19 - sqlalchemy.engine.Engine - INFO - SELECT users.id, users.created_at, users.updated_at, users.is_deleted, users.name, users.email, users.wallet_address, users.role 
+FROM users 
+WHERE users.wallet_address = $1::VARCHAR
+2025-10-03 16:41:19 - sqlalchemy.engine.Engine - INFO - [generated in 0.00020s] ('0.0.6943779',)
+2025-10-03 16:41:19 - sqlalchemy.engine.Engine - INFO - ROLLBACK

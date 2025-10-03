@@ -1,0 +1,6 @@
+2025-10-03 16:34:13 - app.services.hedera_wallet - ERROR - Failed to create Hedera account: JVM exception occurred: java.util.concurrent.TimeoutException
+java.util.concurrent.TimeoutException
+	com.hedera.hashgraph.sdk.Executable.execute(Executable.java:417)
+	com.hedera.hashgraph.sdk.Transaction.execute(Transaction.java:36)
+	com.hedera.hashgraph.sdk.Executable.execute(Executable.java:353)
+	com.hedera.hashgraph.sdk.Transaction.execute(Transaction.java:36)

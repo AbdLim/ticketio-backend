@@ -94,7 +94,10 @@ class AuthService:
         return await self.user_repository.get_by_wallet(wallet_address)
 
     async def create_new_hedera_account(
-        self, name: Optional[str] = None, email: Optional[str] = None
+        self,
+        name: Optional[str] = None,
+        email: Optional[str] = None,
+        role: Optional[str] = None,
     ) -> UserWithTokenAndBalance:
         """
         Create a new Hedera account and user profile.
@@ -118,7 +121,7 @@ class AuthService:
             "wallet_address": account_result["account_id"],
             "name": name,
             "email": email,
-            "role": "ATTENDEE",
+            "role": role,
         }
 
         user = await self.user_repository.create(user_dict)

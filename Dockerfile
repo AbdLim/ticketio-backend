@@ -10,7 +10,7 @@ WORKDIR /app
 
 # Install system build deps + Java
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl openjdk-17-jre-headless \
+    build-essential curl default-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 # Install UV globally
@@ -27,10 +27,10 @@ COPY README.md ./
 # Install dependencies (editable mode works now)
 RUN uv sync --frozen --no-cache
 
+# Check Java version (sanity check, optional — can remove later)
 RUN java -version
 
 EXPOSE 8000
 
 # Run Alembic migrations first, then start Uvicorn
-# CMD /bin/sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
 CMD ["/bin/sh", "-c", "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"]
