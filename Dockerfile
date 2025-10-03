@@ -8,9 +8,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install system build deps + Java
+# Install system build deps + Java JDK
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl default-jre-headless \
+    build-essential curl default-jdk-headless \
     && rm -rf /var/lib/apt/lists/*
 
 # Install UV globally
@@ -27,8 +27,8 @@ COPY README.md ./
 # Install dependencies (editable mode works now)
 RUN uv sync --frozen --no-cache
 
-# Check Java version (sanity check, optional — can remove later)
-RUN java -version
+# Check Java (sanity check)
+RUN java -version && javac -version
 
 EXPOSE 8000
 
