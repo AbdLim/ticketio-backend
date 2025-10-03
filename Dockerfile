@@ -19,6 +19,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
 
 # Copy dependency files and source code for editable install
 COPY pyproject.toml uv.lock ./
+COPY alembic.ini ./
 COPY app ./app
 COPY migrations ./migrations
 COPY README.md ./
@@ -29,4 +30,5 @@ RUN uv sync --frozen --no-cache
 EXPOSE 8000
 
 # Run Alembic migrations first, then start Uvicorn
-CMD /bin/sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
+# CMD /bin/sh -c "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
+CMD ["/bin/sh", "-c", "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"]
