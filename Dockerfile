@@ -8,10 +8,10 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install system build deps
+# Install system build deps + Java
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential curl && \
-    rm -rf /var/lib/apt/lists/*
+    build-essential curl openjdk-17-jre-headless \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install UV globally
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
@@ -26,6 +26,8 @@ COPY README.md ./
 
 # Install dependencies (editable mode works now)
 RUN uv sync --frozen --no-cache
+
+RUN java -version
 
 EXPOSE 8000
 
