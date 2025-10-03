@@ -11,8 +11,10 @@ class UserBase(BaseModel):
     role: UserRole = UserRole.ATTENDEE
 
 
-class UserCreate(UserBase):
-    pass
+class UserCreate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    role: UserRole = UserRole.ATTENDEE
 
 
 class UserUpdate(BaseModel):

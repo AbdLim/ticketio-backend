@@ -21,7 +21,9 @@ async def register(
     """
     Register a new user with their wallet address.
     """
-    return await auth_service.register_user(user_create)
+    return await auth_service.create_new_hedera_account(
+        email=user_create.email, name=user_create.name
+    )
 
 
 @router.post("/login", response_model=UserWithTokenAndBalance)
