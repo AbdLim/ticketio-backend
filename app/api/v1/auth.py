@@ -35,17 +35,17 @@ async def login(
     return await auth_service.login_user(wallet_address)
 
 
-@router.post("/create-account", response_model=UserWithTokenAndBalance, status_code=status.HTTP_201_CREATED)
-async def create_hedera_account(
-    name: str = None,
-    email: str = None,
-    auth_service: Annotated[AuthService, Depends(get_auth_service)],
-):
-    """
-    Create a new Hedera account with initial balance.
-    This creates both a Hedera blockchain account and user profile.
-    """
-    return await auth_service.create_new_hedera_account(name, email)
+# @router.post("/create-account", response_model=UserWithTokenAndBalance, status_code=status.HTTP_201_CREATED)
+# async def create_hedera_account(
+#     name: str = None,
+#     email: str = None,
+#     auth_service: Annotated[AuthService, Depends(get_auth_service)],
+# ):
+#     """
+#     Create a new Hedera account with initial balance.
+#     This creates both a Hedera blockchain account and user profile.
+#     """
+#     return await auth_service.create_new_hedera_account(name, email)
 
 
 @router.get("/balance")
@@ -56,18 +56,19 @@ async def get_wallet_balance(
     Get current wallet balance for any Hedera account.
     """
     from app.services.hedera_wallet import hedera_wallet_service
-    
+
     balance_info = await hedera_wallet_service.get_account_balance(wallet_address)
-    
+
     if not balance_info["success"]:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Could not retrieve balance: {balance_info.get('error')}"
+            detail=f"Could not retrieve balance: {balance_info.get('error')}",
         )
-    
+
     return {
         "wallet_address": wallet_address,
         "hbar_balance": balance_info["hbar_balance"],
-        "last_updated": balance_info["last_updated"]
+        "last_updated": balance_info["last_updated"],
     }
