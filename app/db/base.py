@@ -2,22 +2,17 @@
 # app/db/base.py
 
 from typing import Optional
-from datetime import datetime, UTC
+from datetime import datetime
+from uuid import uuid4
 
 from sqlmodel import SQLModel, Field
-from sqlalchemy import event
+from sqlalchemy import event, Column, DateTime
 
 
-from sqlalchemy import Column, DateTime, Boolean
-
-
-class TimestampMixin(SQLModel):
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(UTC),
-        sa_column=Column(DateTime(timezone=True)),
-    )
-    updated_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=True)))
-    deleted_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=True)))
+class BaseModel(SQLModel):
+    id: str = Field(default_factory=lambda: str(uuid4()), primary_key=True)
+    created_at: Optional[datetime] = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: Optional[datetime] = Field(default=None)
     is_deleted: bool = Field(default=False)
 
 
@@ -25,19 +20,10 @@ class TimestampMixin(SQLModel):
 @event.listens_for(SQLModel, "before_insert", propagate=True)
 def set_created_at(_, __, target):
     if hasattr(target, "created_at") and target.created_at is None:
-        target.created_at = datetime.now(UTC)
+        target.created_at = datetime.utcnow()  # Use timezone-naive UTC
 
 
 @event.listens_for(SQLModel, "before_update", propagate=True)
 def set_updated_at(_, __, target):
     if hasattr(target, "updated_at"):
-        target.updated_at = datetime.now(UTC)
-
-
-class IDMixin(SQLModel):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
-
-# Common base class for all models
-class BaseModel(IDMixin, TimestampMixin, SQLModel):
-    pass
+        target.updated_at = datetime.utcnow()  # Use timezone-naive UTC

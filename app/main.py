@@ -4,9 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from app.core.logging import logger, setup_logging
-from app.core import settings
+from app.core.config import Settings
 from app.db.session import init_db
 from app.api.v1 import api_router
+
+settings = Settings()
 
 
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:

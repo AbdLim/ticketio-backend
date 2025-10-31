@@ -3,7 +3,9 @@ from typing import Any, Optional, AsyncGenerator
 import json
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
-from app.core import settings
+from app.core.config import Settings
+
+settings = Settings()
 
 
 class RedisCache:
@@ -94,3 +96,7 @@ async def get_cache() -> AsyncGenerator[RedisCache, None]:
         yield cache
     finally:
         await cache.close()
+
+
+# Create a global cache instance for direct usage
+cache = get_redis_cache()

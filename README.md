@@ -1,140 +1,72 @@
-# Ticketio Backend
+++
+Project Title & Track
 
-A FastAPI-based backend service with SQLModel, Redis caching, and timezone-aware PostgreSQL.
+---
 
-## Prerequisites
+Ticketio — Backend (NFT Ticketing)  
+Track: Hedera NFT & Wallet Integration
 
--   Python 3.13+
--   PostgreSQL
--   Redis
--   uv (Python package manager)
+## Pitch deck and certification links
 
-## Quick Start
+-   Pitch deck: (add your pitch deck URL here)
+-   Certification / paperwork: (add certification link(s) here)
 
-1. **Setup Environment**:
+## Hedera Integration Summary
 
-    ```bash
-    # Create a virtual environment
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+This repository uses Hedera primarily to issue and manage event tickets as NFTs and to manage user wallets/accounts. Below is a concise summary of which Hedera services and SDK features are used, why they were chosen, and how they are used in the codebase.
 
-    # Install dependencies
-    uv venv
-    uv pip install -e .
-    ```
+1. Hedera Token Service (HTS) — USED
 
-2. **Configure Environment**:
+-   What we use HTS for:
 
-    ```bash
-    cp example.env .env
-    # Edit .env with your database and Redis credentials
-    ```
+    -   Issuing NFT collections that represent ticket series (TokenCreateTransaction with NFT token type).
+    -   Minting individual NFTs (tickets) with metadata (TokenMintTransaction). Mint receipts provide serial numbers used as ticket identifiers.
+    -   Transferring NFTs between accounts when tickets are transferred or sold (TransferTransaction).
+    -   Associating tokens with user accounts before they can receive/hold tokens (TokenAssociateTransaction).
 
-3. **Setup Database**:
+-   Where in the repo:
 
-    ```bash
-    createdb deebee  # Create PostgreSQL database
-    uv run alembic upgrade head  # Run migrations
-    ```
+    -   `app/utils/hedera.py` — primary production HederaService (create/mint/transfer, Token queries).
+    -   `hedera_implementations/hedera_corrected.py` — corrected/full implementation used for tests and clarity.
+    -   `hedera_implementations/hedera_minimal.py` — lightweight fallback implementation for local testing or minimal environments.
 
-4. **Run the Application**:
+-   Why HTS:
+    -   HTS is the native Hedera facility to create and manage fungible and non-fungible tokens. For ticketing, NFTs provide a canonical, transferable asset with on-chain ownership and serial numbers that map directly to tickets.
+    -   HTS operations are supported by the Hedera SDKs used in the project (TokenCreateTransaction, TokenMintTransaction, TransferTransaction, TokenAssociateTransaction, TokenNftInfoQuery, TokenInfoQuery).
 
-    ```bash
-    uv run dev
-    ```
+2. Mirror Node usage
 
-    Visit `http://localhost:8000/docs` for the API documentation.
+-   The project uses Hedera Mirror Node REST APIs to query token NFT details and perform ownership verification (e.g., `GET /api/v1/tokens/{token_id}/nfts/{serial}`), which provides a reliable read-path for owner information and metadata.
 
-## System Architecture
+3. Account / Wallet management (non-HTS operations)
 
-```
-┌────────────────────┐
-│    API Layer       │  FastAPI Routers
-└─────────┬──────────┘
-          │
-┌─────────▼──────────┐
-│  Service Layer     │  Business Logic & Caching
-└─────────┬──────────┘
-          │
-┌─────────▼──────────┐
-│ Repository Layer   │  Data Access
-└─────────┬──────────┘
-          │
-┌─────────▼──────────┐
-│  Database Layer    │  SQLModel/SQLAlchemy
-└────────────────────┘
-```
+-   `app/services/hedera_wallet.py` implements account-level operations:
+    -   Creating new Hedera accounts with generated ED25519 key pairs and initial HBAR top-ups (AccountCreateTransaction).
+    -   Querying balances (AccountBalanceQuery) and account info (AccountInfoQuery).
+    -   Checking sufficient balance prior to performing transactions.
 
-## Features
+4. Environment & security
 
--   **FastAPI Framework**: High-performance async web framework
--   **SQLModel ORM**: Type-annotated database models
--   **Redis Caching**: Performance optimization
--   **Alembic Migrations**: Database versioning
--   **Timezone Support**: UTC-aware datetime handling
--   **CRUD Operations**: Generic repository pattern
--   **API Documentation**: Auto-generated OpenAPI/Swagger docs
+-   Required env vars used by Hedera code:
 
-## Component Details
+    -   `HEDERA_NETWORK` (testnet | mainnet)
+    -   `HEDERA_OPERATOR_ID` (operator account id)
+    -   `HEDERA_OPERATOR_KEY` (operator private key)
+    -   `HEDERA_MIRROR_NODE_URL` (mirror node base URL)
 
-### 1. API Layer (Routers)
+-   Production notes:
+    -   Keep operator keys secure and consider Hardware Security Module (HSM) or KMS for mainnet operator private keys.
+    -   Mirror Node queries are used for reads; for high reliability consider a dedicated mirror node or vendor endpoint.
 
--   RESTful endpoint handlers
--   Input validation with Pydantic
--   Error handling and responses
--   OpenAPI documentation
+5. Tests and verification
 
-### 2. Service Layer
+-   Hedera tests live under `tests/hedera/` and include a `test_full_implementation.py` that exercises HTS operations (create/mint/transfer/verify) using the corrected implementation.
 
--   Business logic implementation
--   Redis caching integration
--   Transaction coordination
--   Entity relationships
+Appendix — Quick mapping of HTS SDK classes used
 
-### 3. Repository Layer
-
--   Generic CRUD operations
--   Async database operations
--   Soft delete support
--   Query optimization
-
-### 4. Database Layer
-
--   PostgreSQL with timezone support
--   SQLModel/SQLAlchemy integration
--   Connection pooling
--   Migration management
-
-## API Documentation
-
--   Swagger UI: `http://localhost:8000/docs`
--   ReDoc: `http://localhost:8000/redoc`
-
-## Development
-
-See [GUIDE.md](GUIDE.md) for detailed development instructions.
-
-## Security Architecture
-
--   JWT token-based authentication
--   OAuth 2.0 integration
--   Password hashing
--   Role-based access control (RBAC)
--   CORS protection
--   Rate limiting
--   Data encryption
-
-## Error Handling
-
--   Standardized error responses
--   Detailed error logging
--   Graceful error recovery
--   Client-friendly error messages
-
-## Logging and Monitoring
-
--   Structured logging
--   Request/Response logging
--   Error tracking
--   Performance monitoring
--   Audit logging for security events
+-   TokenCreateTransaction — create NFT collections
+-   TokenMintTransaction — mint NFT metadata and get serials
+-   TransferTransaction — transfer token ownership
+-   TokenAssociateTransaction — allow an account to hold a token
+-   TokenNftInfoQuery / TokenInfoQuery — get token/nft data via SDK
+-   Mirror Node REST endpoints — ownership verification and NFT metadata reads
