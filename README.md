@@ -6,10 +6,9 @@ Project Title & Track
 Ticketio — Backend (NFT Ticketing)  
 Track: Hedera NFT & Wallet Integration
 
-## Pitch deck and certification links
+## Pitch deck
 
--   Pitch deck: (add your pitch deck URL here)
--   Certification / paperwork: (add certification link(s) here)
+-   Pitch deck: [link](https://www.figma.com/slides/AyssJtAWkdKdsSLYH4kjmH/Untitled?node-id=1-42&t=sgwTxO2zbI4345BL-1)
 
 ## Hedera Integration Summary
 
